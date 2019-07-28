@@ -20,7 +20,7 @@ def net(image):
 def _conv_layer(net, num_filters, filter_size, strides, relu=True):
     weights_init = _conv_init_vars(net, num_filters, filter_size)
     strides_shape = [1, strides, strides, 1]
-    net = tf.nn.conv2d(net, weights_init, strides_shape, padding='SAME')
+    net = tf.nn.conv2d(input=net, filters=weights_init, strides=strides_shape, padding='SAME')
     net = _instance_norm(net)
     if relu:
         net = tf.nn.relu(net)
@@ -49,7 +49,7 @@ def _residual_block(net, filter_size=3):
 def _instance_norm(net, train=True):
     batch, rows, cols, channels = [i.value for i in net.get_shape()]
     var_shape = [channels]
-    mu, sigma_sq = tf.nn.moments(net, [1,2], keep_dims=True)
+    mu, sigma_sq = tf.nn.moments(x=net, axes=[1,2], keepdims=True)
     shift = tf.Variable(tf.zeros(var_shape))
     scale = tf.Variable(tf.ones(var_shape))
     epsilon = 1e-3
@@ -63,5 +63,5 @@ def _conv_init_vars(net, out_channels, filter_size, transpose=False):
     else:
         weights_shape = [filter_size, filter_size, out_channels, in_channels]
 
-    weights_init = tf.Variable(tf.truncated_normal(weights_shape, stddev=WEIGHTS_INIT_STDEV, seed=1), dtype=tf.float32)
+    weights_init = tf.Variable(tf.random.truncated_normal(weights_shape, stddev=WEIGHTS_INIT_STDEV, seed=1), dtype=tf.float32)
     return weights_init
